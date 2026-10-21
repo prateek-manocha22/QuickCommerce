@@ -1,0 +1,1 @@
+-- ALL the table related related queries to be written here in this file :)
