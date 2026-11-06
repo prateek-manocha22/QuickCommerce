@@ -3,15 +3,15 @@
 -- 1. For Company operating in cities : City ID, City name, State.
 
 Create Table ActiveCities(
-    CityID varchar(10) Primary KEY NOT NULL,
+    CityID varchar(10) Primary KEY,
     CityName varchar(50),
     InState varchar(20)
 );
 
--- 2. DarkStore Location : City ID, DARK STORE ID : Location inside sity (area / sector)(Format : DSXXX)
+-- 2. DarkStore Location : City ID, DARK STORE ID : Location inside city (area / sector)(Format : DSXXX)
 
 create table DarkStores(
-    DarkStroreID varchar(10) Primary Key NOT NULL,
+    DarkStroreID varchar(10) Primary Key,
     CityID varchar(10) NOT NULL,
 
     Constraint fk_DS_City
@@ -24,10 +24,10 @@ create table DarkStores(
 -- 3. For Customer Info : Customer ID, Customer Name, Phone number, mail id, Customer ratings, Customer City ID.
 
 create table CustomerInfo(
-    CustomerID varchar(20) primary key NOT NULL,
+    CustomerID varchar(20) primary key,
     CityID varchar(10) NOT NULL,
     CustomerName varchar(15) NOT NULL,
-    PhoneNumber int NOT NULL,
+    PhoneNumber varchar(10) NOT NULL,
     Ratings int,        -- 1/2/3/4/5.
 
     Constraint fk_Customer_City
@@ -41,8 +41,11 @@ create table CustomerInfo(
 
 create table CustomerAdd(
     CustomerID varchar(20) NOT NULL,
-    AddressID varchar(10) Primary Key NOT NULL,
+    AddressID varchar(10),
     DarkStroreID varchar(10),
+
+-- here earlier i just assigned primary key to Address ID but understand different customer ID's can have same Address ID but this thing was not allowed if AddressID is only the primary key i need to have COMNINNED PRIMARY KEY.
+    Primary key (CustomerID, AddressID),
 
     Constraint fk_CusAdd_CusID
     FOREIGN KEY (CustomerID)
@@ -60,7 +63,7 @@ create table CustomerAdd(
 -- 5. Order details : Order ID, Customer ID, Dark Store ID, ADDRESS ID, Order initiated date, Order initiated time, price, discount on that perticular ORDER.
 
 create table OrderDetails(
-    OrderID varchar(10) Primary key NOT NULL,
+    OrderID varchar(10) Primary key,
     CustomerID varchar(20) Not null,
     DarkStroreID varchar(10) NOT NULL,
     OrderDate date NOT NULL,
@@ -90,20 +93,20 @@ create table OrderDetails(
 -- 5b. Product details : Product ID, product name, rarings, product status (in stock or out), price, discount applied, Number of peice in the pack, Refundable or non refundable, Arrival date and best before date.
 
 create table ProductDetails(
-    ProductID varchar(10) Primary key NOT NULL,
+    ProductID varchar(10) Primary key,
     ProductName varchar(50) Not null,
     ProductStatus varchar(15) NOT NULL,
     ProductStars int Default 5,                         -- I want the data inserted in the tables to be in the range 1-5, so i can't use between operator ?
-    ProductPrice decimal(10, 4) Primary key NOT NULL,
-    RefundStatus varchar(10) Not NULL,
+    ProductPrice decimal(10, 2) NOT NULL,
+    RefundStatus varchar(10) Not NULL
 );
 
 -- 5c. Product availability in darkstores : ProductId, DarkstoreID (One product can obviously present in many darkstores)
 
-craete table ProductAvail(
+CREATE table ProductAvail(
     ProductID varchar(10) NOT NULL,
     DarkStroreID varchar(10) NOT NULL,
-    AvailStatus varchar(10) primary key. -- if not available then none otherwise not null (either just enter : 1)
+    AvailStatus int NOT NULL-- if not available then none otherwise just enter : 1.
 );
 
 -- 6 Order Items : Order ID, Product ID, Product quantity (the bridge between the table : OrderDetails and ProductDetails)
@@ -112,8 +115,10 @@ Create table OrderItems(
     OrderID varchar(10),
     ProductID varchar(10),
     ProductQuantity int NOT NULL,
-    ProductPrice decimal(10, 4),
-    AvailabilityStatus varchar(10) NOT NULL,
+    ProductPrice decimal(10, 2),
+    AvailabilityStatus int NOT NULL,
+
+    Primary key (OrderId, ProductID),               -- If in case same Customer wants to add same products which means he need to increase the quantity of the product no need of writinhg that in different rows and this primary key won't even allow that to happen.
 
     Constraint fk_Item_Order
     FOREIGN KEY (OrderID)
@@ -124,12 +129,6 @@ Create table OrderItems(
     Constraint fk_Item_Product
     FOREIGN KEY (ProductID)
     REFERENCES ProductDetails(ProductID)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
-
-    Constraint fk_ItemPrize_Prize
-    FOREIGN KEY (ProductPrice)
-    REFERENCES ProductDetails(ProductPrice)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
 
@@ -149,26 +148,20 @@ Create table OrderItems(
 -- 10. Delievery partner details : partner Name, Partner ID, Ratings, Number of Delievery Handled.
 
 Create table PartnerDetails (
-    PartnerID varchar(10) Not NUll Primary key,
+    PartnerID varchar(10) Primary key,
     PartnerName varchar(25) NOT NULL,
     PartnerRatings int NOT NULL,
-    NumberOfDeievery int NOT NULL
+    NumberOfDeievery int
 );
 
 -- 11. Delievery details : Delievery ID, Delievery partner ID, Delievery Status(Delievered or not), Order ID, Payment Status (Paid or not paid).
 
 Create table DelieveryDetails(
-    DelieverytID varchar(10) Primary Key NOT NULL,
+    DelieverytID varchar(10) Primary Key ,
     PartnerID varchar(10) NOT NULL,
     DelieveryStatus varchar(10) NOT NULL,
     OrderID varchar(10) NOT NULL,
     PaymentStatus varchar(10) NOT NULL,
-
-    Constraint fk_delievery_partner
-    FOREIGN KEY (PartnerID)
-    REFERENCES PartnerDetails(PartnerID)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
 
     Constraint fk_delievery_partner
     FOREIGN KEY (PartnerID)
